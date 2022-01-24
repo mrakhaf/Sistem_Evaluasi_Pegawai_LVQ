@@ -29,40 +29,48 @@ def default(obj):
     raise TypeError('Unknown type:', type(obj))
 
 #Train
-def lvq_fit(train, target, learning_rate, b, max_epoch):
-    label, train_idx = np.unique(target, return_index=True)
-    weight = train[train_idx].astype(np.float64)
-    train = np.array([e for i, e in enumerate(zip(train, target)) if i not in train_idx])
-    train, target = train[:, 0], train[:, 1]
-    epoch = 0
-    bobot_awal = weight
-
-    data = [{
-        "Bobot Awal" : bobot_awal
-    }]
-    kata_training = []
-    while epoch < max_epoch:
-        kata = ("Epoch ke-"+ str(epoch+1))
-        kata_training.append(kata)
-        for i, x in enumerate(train):
-            distance = [sum((w - x) ** 2) for w in weight]
-            min = np.argmin(distance)
-            sign = 1 if target[i] == label[min] else -1
-            weight[min] += sign * learning_rate * (x - weight[min])
-            kata_perulangan = ("Iterasi ke-"+ str(i+1))
-            kata_training.append(kata_perulangan)
-            kata_bobot = ("Bobot :", weight)
-            kata_training.append(kata_bobot)
-        learning_rate *= b
-        epoch +=1 
-    data.append({
-        "Training" : kata_training
-    })
-    data.append({
-        "Bobot Akhir" : weight
-    })   
-    data = json.dumps(data, default=default)
-    return data
+# def lvq_fit(train, target, learning_rate, b, max_epoch):
+#     label, train_idx = np.unique(target, return_index=True)
+#     weight = train[train_idx].astype(np.float64)
+#     bobot_awal = train[train_idx].astype(np.float64)
+#     train = np.array([e for i, e in enumerate(zip(train, target)) if i not in train_idx])
+#     train, target = train[:, 0], train[:, 1]
+#     epoch = 0
+#     print("HASIL PROSES TRAINING")
+#     print("======================")
+#     print("Bobot Awal:", bobot_awal)
+#     print("")
+#     data = [{
+#         "Bobot Awal" : bobot_awal
+#     }]
+#     kata_training = []
+#     while epoch < max_epoch:
+#         kata = ("Epoch ke-"+ str(epoch+1))
+#         kata_training.append(kata)
+#         for i, x in enumerate(train):
+#             print("Iterasi ke-"+ str(i+1))
+#             distance = [sum((w - x) ** 2) for w in weight]
+#             # print(distance)
+#             min = np.argmin(distance)
+#             print("Update bobot kelas ke-", min+1)
+#             sign = 1 if target[i] == label[min] else -1
+#             weight[min] += sign * learning_rate * (x - weight[min])
+#             print(weight)
+#             print("")
+#             kata_perulangan = ("Iterasi ke-"+ str(i+1))
+#             kata_training.append(kata_perulangan)
+#             kata_bobot = ("Bobot :", weight)
+#             kata_training.append(kata_bobot)
+#         learning_rate *= b
+#         epoch +=1 
+#     data.append({
+#         "Training" : kata_training
+#     })
+#     data.append({
+#         "Bobot Akhir" : weight
+#     })       
+#     data = json.dumps(data, default=default)
+#     return data
 
 def lvq_train(train, target, learning_rate, b, max_epoch):
     label, train_idx = np.unique(target, return_index=True)
@@ -70,13 +78,22 @@ def lvq_train(train, target, learning_rate, b, max_epoch):
     train = np.array([e for i, e in enumerate(zip(train, target)) if i not in train_idx])
     train, target = train[:, 0], train[:, 1]
     epoch = 0
+    print("HASIL PROSES TRAINING")
+    print("======================")
+    print("Bobot Awal:", weight)
+    print("")
 
     while epoch < max_epoch:
+        print("Epoch ke-", epoch+1)
         for i, x in enumerate(train):
+            print("Iterasi ke-"+ str(i+1))
             distance = [sum((w - x) ** 2) for w in weight]
             min = np.argmin(distance)
+            print("Update bobot kelas ke-", min+1)
             sign = 1 if target[i] == label[min] else -1
             weight[min] += sign * learning_rate * (x - weight[min])
+            print(weight)
+            print("")
 
         learning_rate *= b
         epoch +=1 
@@ -92,8 +109,9 @@ def lvq_test(x, W):
 
 @app.route('/train')
 def train():
-    data = lvq_fit(X, y, .1, .5, 1)    
-    return str(data)
+    data = lvq_train(X, y, .05, .5, 1)  
+    data = json.dumps(data, default=default)  
+    return data
 
 @app.route('/test', methods=['POST'])
 def testing():
@@ -104,7 +122,7 @@ def testing():
     nilaiPelatihan = int(request.form.get('Nilai Pelatihan'))
     nilaiKinerja = int(request.form.get('Nilai Kinerja'))
     
-    bobot = lvq_train(X, y, .1, .5, 1)
+    bobot = lvq_train(X, y, .05, .5, 1)
     test = [[masaKerja, usia, nilaiPelatihan, nilaiKinerja]]
     test = np.array(scaller.transform(test))
     result = lvq_test(test[0], bobot)
@@ -112,7 +130,7 @@ def testing():
         hasil = 'Promosi'
     elif result == 2:
         hasil = 'Mutasi'
-    else:
+    elif result == 3:
         hasil = 'PHK'
     data.append({
         "nama": namaPegawai,

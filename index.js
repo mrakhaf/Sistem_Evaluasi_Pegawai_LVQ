@@ -8,11 +8,9 @@ function training(){
         })
         .then(data => {
             let a = JSON.parse(data)
-            console.log(a[1]["Training"])
-            bobot_akhir = a[2]["Bobot Akhir"]
-            document.getElementById("b1").value = bobot_akhir[0]
-            document.getElementById("b2").value = bobot_akhir[1]
-            document.getElementById("b3").value = bobot_akhir[2]
+            document.getElementById("b1").value = a[0][0]
+            document.getElementById("b2").value = a[0][1]
+            document.getElementById("b3").value = a[0][2]
         })
         .catch(error => {
             // handle the error
